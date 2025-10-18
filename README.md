@@ -1,4 +1,4 @@
-# Vibecoding MCP Servers
+# AMS Development MCP Servers
 
 > MCP servers for real-time development monitoring and interactive pair programming
 
@@ -13,21 +13,21 @@ A suite of Model Context Protocol (MCP) servers designed to enhance AI-assisted 
 
 This monorepo contains three interconnected MCP servers:
 
-### [@vibecoding/process-manager](./packages/process-manager)
+### [@ams-dev/process-manager](./packages/process-manager) · [npm](https://www.npmjs.com/package/@ams-dev/process-manager)
 Monitor and control development processes (nx serve, npm run, etc.)
 - Start, stop, and restart processes
 - Stream and filter process logs in real-time
 - Send input to interactive processes
 - Pattern-based monitoring for errors and warnings
 
-### [@vibecoding/docker-manager](./packages/docker-manager)
+### [@ams-dev/docker-manager](./packages/docker-manager) · [npm](https://www.npmjs.com/package/@ams-dev/docker-manager)
 Control and inspect Docker containers
 - List, start, stop, and restart containers
 - Execute commands inside containers
 - Stream container logs
 - Inspect container configuration and state
 
-### [@vibecoding/dev-watcher](./packages/dev-watcher)
+### [@ams-dev/dev-watcher](./packages/dev-watcher) · [npm](https://www.npmjs.com/package/@ams-dev/dev-watcher)
 Real-time error detection and pattern matching across all development sources
 - Aggregate logs from processes and containers
 - Regex pattern matching for errors and warnings
@@ -40,10 +40,10 @@ Real-time error detection and pattern matching across all development sources
 
 ```bash
 # Install all packages globally
-npm install -g @vibecoding/process-manager @vibecoding/docker-manager @vibecoding/dev-watcher
+npm install -g @ams-dev/process-manager @ams-dev/docker-manager @ams-dev/dev-watcher
 
 # Or use with npx (no installation required)
-npx @vibecoding/process-manager
+npx @ams-dev/process-manager
 ```
 
 ### Configuration
@@ -55,15 +55,15 @@ Add to your Claude Code MCP configuration (`~/.config/claude/mcp.json`):
   "mcpServers": {
     "process-manager": {
       "command": "npx",
-      "args": ["-y", "@vibecoding/process-manager"]
+      "args": ["-y", "@ams-dev/process-manager"]
     },
     "docker-manager": {
       "command": "npx",
-      "args": ["-y", "@vibecoding/docker-manager"]
+      "args": ["-y", "@ams-dev/docker-manager"]
     },
     "dev-watcher": {
       "command": "npx",
-      "args": ["-y", "@vibecoding/dev-watcher"]
+      "args": ["-y", "@ams-dev/dev-watcher"]
     }
   }
 }

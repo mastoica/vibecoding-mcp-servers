@@ -1,6 +1,6 @@
 {
-  "name": "@vibecoding/docker-manager",
-  "version": "0.1.0",
+  "name": "@ams-dev/docker-manager",
+  "version": "0.1.2",
   "description": "MCP server for managing and inspecting Docker containers",
   "type": "module",
   "main": "./dist/index.js",

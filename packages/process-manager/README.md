@@ -1,4 +1,4 @@
-# @vibecoding/process-manager
+# @ams-dev/process-manager
 
 > MCP server for managing and monitoring development processes
 
@@ -19,10 +19,10 @@ A Model Context Protocol (MCP) server that enables AI assistants like Claude Cod
 
 ```bash
 # Global installation
-npm install -g @vibecoding/process-manager
+npm install -g @ams-dev/process-manager
 
 # Or use with npx
-npx @vibecoding/process-manager
+npx @ams-dev/process-manager
 ```
 
 ## Usage
@@ -34,7 +34,7 @@ Add to your Claude Code MCP configuration (`~/.config/claude/mcp.json`):
   "mcpServers": {
     "process-manager": {
       "command": "npx",
-      "args": ["-y", "@vibecoding/process-manager"]
+      "args": ["-y", "@ams-dev/process-manager"]
     }
   }
 }
@@ -189,5 +189,5 @@ MIT © [mastoica](https://github.com/mastoica)
 
 ## Related
 
-- [@vibecoding/docker-manager](../docker-manager) - Docker container management
-- [@vibecoding/dev-watcher](../dev-watcher) - Real-time error detection
+- [@ams-dev/docker-manager](../docker-manager) - Docker container management
+- [@ams-dev/dev-watcher](../dev-watcher) - Real-time error detection

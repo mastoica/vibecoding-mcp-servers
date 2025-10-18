@@ -1,6 +1,6 @@
 {
-  "name": "@vibecoding/process-manager",
-  "version": "0.1.0",
+  "name": "@ams-dev/process-manager",
+  "version": "0.1.2",
   "description": "MCP server for managing and monitoring development processes",
   "type": "module",
   "main": "./dist/index.js",
