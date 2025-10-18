@@ -1,5 +1,5 @@
 {
-  "name": "@vibecoding/dev-watcher",
+  "name": "@ams-dev/dev-watcher",
   "version": "0.1.0",
   "description": "MCP server for real-time error detection and pattern matching across development sources",
   "type": "module",
