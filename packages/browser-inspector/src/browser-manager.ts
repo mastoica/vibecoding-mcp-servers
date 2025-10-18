@@ -16,24 +16,39 @@ export class BrowserManager {
   private consoleLogs: ConsoleLog[] = [];
   private networkRequests: NetworkRequest[] = [];
   private isMonitoring = false;
-  private connectionMode: ConnectionMode = 'puppeteer' as ConnectionMode;
+  private connectionMode: ConnectionMode = 'attach' as ConnectionMode;
   private debugPort = 9222;
   private cdpUrl: string | null = null;
 
-  async ensureBrowser(mode: ConnectionMode = 'puppeteer' as ConnectionMode): Promise<Browser> {
+  async ensureBrowser(mode: ConnectionMode = 'attach' as ConnectionMode): Promise<Browser> {
     if (!this.browser) {
-      this.connectionMode = mode;
-
+      // Try attach mode first (if not explicitly set to puppeteer)
       if (mode === ('attach' as ConnectionMode)) {
-        // Connect to existing Chrome instance via CDP
-        this.cdpUrl = `http://localhost:${this.debugPort}`;
-        this.browser = await chromium.connectOverCDP(this.cdpUrl);
+        try {
+          this.cdpUrl = `http://localhost:${this.debugPort}`;
+          this.browser = await chromium.connectOverCDP(this.cdpUrl);
+          this.connectionMode = 'attach' as ConnectionMode;
+          console.error(
+            `✓ Connected to existing Chrome instance on port ${this.debugPort} (attach mode)`
+          );
+        } catch (error) {
+          // Fallback to puppeteer mode if attach fails
+          console.error(
+            `ℹ No Chrome instance found on port ${this.debugPort}, launching new browser (puppeteer mode)`
+          );
+          this.browser = await chromium.launch({
+            headless: false,
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+          });
+          this.connectionMode = 'puppeteer' as ConnectionMode;
+        }
       } else {
-        // Launch new browser
+        // Explicitly requested puppeteer mode
         this.browser = await chromium.launch({
           headless: false,
           args: ['--no-sandbox', '--disable-setuid-sandbox'],
         });
+        this.connectionMode = 'puppeteer' as ConnectionMode;
       }
     }
     return this.browser;
@@ -546,5 +561,21 @@ export class BrowserManager {
 
   async close(): Promise<void> {
     await this.disconnect();
+  }
+
+  getChromeLaunchCommand(): string {
+    const platform = process.platform;
+    const port = this.debugPort;
+
+    switch (platform) {
+      case 'darwin':
+        return `/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --remote-debugging-port=${port}`;
+      case 'win32':
+        return `chrome.exe --remote-debugging-port=${port}`;
+      case 'linux':
+        return `google-chrome --remote-debugging-port=${port}`;
+      default:
+        return `google-chrome --remote-debugging-port=${port}`;
+    }
   }
 }

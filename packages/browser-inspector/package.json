@@ -1,6 +1,6 @@
 {
   "name": "@ams-dev/browser-inspector",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "MCP server for browser automation, inspection, monitoring, and performance analysis",
   "type": "module",
   "main": "./dist/index.js",

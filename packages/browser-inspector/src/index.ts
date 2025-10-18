@@ -63,6 +63,15 @@ const tools: Tool[] = [
     },
   },
   {
+    name: 'get_chrome_launch_command',
+    description:
+      'Get the command to launch Chrome with remote debugging enabled for your OS. Use this to enable attach mode.',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
+  {
     name: 'navigate',
     description:
       'Navigate to a URL in the browser. This will clear previous console logs and network requests.',
@@ -293,7 +302,7 @@ const tools: Tool[] = [
 const server = new Server(
   {
     name: 'browser-inspector',
-    version: '0.2.0',
+    version: '0.2.1',
   },
   {
     capabilities: {
@@ -373,6 +382,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'navigate': {
         const { url } = args as unknown as { url: string };
+
+        // Check if in attach mode - user should navigate manually
+        if (browserManager.getConnectionMode() === ('attach' as any)) {
+          throw new Error(
+            'Please attach to the tab do not navigate to it as it is allready opened in a chrome with remote debugging'
+          );
+        }
+
         await browserManager.navigate(url);
         return {
           content: [
