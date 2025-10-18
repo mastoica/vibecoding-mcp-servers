@@ -62,10 +62,28 @@ export class BrowserManager {
         // Get existing contexts (tabs)
         const contexts = browser.contexts();
         if (contexts.length > 0) {
-          this.context = contexts[0];
-          const pages = this.context.pages();
-          if (pages.length > 0) {
-            this.page = pages[0];
+          // Try to find a non-DevTools page
+          for (const context of contexts) {
+            const pages = context.pages();
+            for (const page of pages) {
+              const url = page.url();
+              // Skip DevTools tabs
+              if (!url.startsWith('devtools://') && !url.startsWith('chrome://')) {
+                this.context = context;
+                this.page = page;
+                break;
+              }
+            }
+            if (this.page) break;
+          }
+
+          // Fallback to first non-DevTools page if no context matched
+          if (!this.page) {
+            this.context = contexts[0];
+            const pages = this.context.pages();
+            if (pages.length > 0) {
+              this.page = pages[0];
+            }
           }
         }
 
