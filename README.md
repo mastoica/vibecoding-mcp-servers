@@ -4,6 +4,13 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
+[![pnpm](https://img.shields.io/badge/maintained%20with-pnpm-cc00ff.svg)](https://pnpm.io/)
+
+[![process-manager](https://img.shields.io/npm/v/@ams-dev/process-manager?label=process-manager)](https://www.npmjs.com/package/@ams-dev/process-manager)
+[![docker-manager](https://img.shields.io/npm/v/@ams-dev/docker-manager?label=docker-manager)](https://www.npmjs.com/package/@ams-dev/docker-manager)
+[![dev-watcher](https://img.shields.io/npm/v/@ams-dev/dev-watcher?label=dev-watcher)](https://www.npmjs.com/package/@ams-dev/dev-watcher)
+
+[![CI](https://github.com/mastoica/vibecoding-mcp-servers/actions/workflows/test.yml/badge.svg)](https://github.com/mastoica/vibecoding-mcp-servers/actions/workflows/test.yml)
 
 ## Overview
 
@@ -14,21 +21,27 @@ A suite of Model Context Protocol (MCP) servers designed to enhance AI-assisted 
 This monorepo contains three interconnected MCP servers:
 
 ### [@ams-dev/process-manager](./packages/process-manager) · [npm](https://www.npmjs.com/package/@ams-dev/process-manager)
+
 Monitor and control development processes (nx serve, npm run, etc.)
+
 - Start, stop, and restart processes
 - Stream and filter process logs in real-time
 - Send input to interactive processes
 - Pattern-based monitoring for errors and warnings
 
 ### [@ams-dev/docker-manager](./packages/docker-manager) · [npm](https://www.npmjs.com/package/@ams-dev/docker-manager)
+
 Control and inspect Docker containers
+
 - List, start, stop, and restart containers
 - Execute commands inside containers
 - Stream container logs
 - Inspect container configuration and state
 
 ### [@ams-dev/dev-watcher](./packages/dev-watcher) · [npm](https://www.npmjs.com/package/@ams-dev/dev-watcher)
+
 Real-time error detection and pattern matching across all development sources
+
 - Aggregate logs from processes and containers
 - Regex pattern matching for errors and warnings
 - Alert deduplication and severity classification
@@ -72,6 +85,7 @@ Add to your Claude Code MCP configuration (`~/.config/claude/mcp.json`):
 ## Use Cases
 
 ### NX Monorepo Development
+
 ```
 Claude: "I'll start the admin and products services for you"
 - Starts both services with process-manager
@@ -80,6 +94,7 @@ Claude: "I'll start the admin and products services for you"
 ```
 
 ### Docker-based Development
+
 ```
 Developer: "Set up the local environment"
 Claude: "Starting your database containers"
@@ -89,6 +104,7 @@ Claude: "Starting your database containers"
 ```
 
 ### Interactive Debugging
+
 ```
 Developer: "Why is the API slow?"
 Claude:
