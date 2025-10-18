@@ -57,3 +57,22 @@ export interface AccessibilityReport {
     info: number;
   };
 }
+
+export enum ConnectionMode {
+  PUPPETEER = 'puppeteer',
+  ATTACH = 'attach',
+}
+
+export interface BrowserTab {
+  id: string;
+  url: string;
+  title: string;
+  type: string;
+}
+
+export interface ConnectionOptions {
+  mode: ConnectionMode;
+  debugPort?: number;
+  urlPattern?: string;
+  tabId?: string;
+}

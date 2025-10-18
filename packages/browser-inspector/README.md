@@ -1,8 +1,14 @@
 # @ams-dev/browser-inspector
 
-A Model Context Protocol (MCP) server that provides comprehensive browser automation, inspection, monitoring, and performance analysis capabilities using Puppeteer.
+A Model Context Protocol (MCP) server that provides comprehensive browser automation, inspection, monitoring, and performance analysis capabilities using Playwright.
 
 ## Features
+
+### 🔌 Connection Modes
+
+- **Attach Mode** - Connect to an existing Chrome/Chromium tab for passive monitoring of your development work
+- **Puppeteer Mode** - Launch a new browser instance for automated testing and form filling
+- Seamlessly switch between modes as needed
 
 ### 🌐 Navigation & Inspection
 
@@ -80,11 +86,84 @@ Add to your MCP configuration file:
 
 ## Available Tools
 
+### Connection Management
+
+#### `connect_to_existing_tab`
+
+Connect to an existing Chrome/Chromium tab via remote debugging (Attach Mode).
+
+**Prerequisites**: Chrome must be started with remote debugging enabled:
+
+```bash
+# macOS
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
+
+# Linux
+google-chrome --remote-debugging-port=9222
+
+# Windows
+chrome.exe --remote-debugging-port=9222
+```
+
+Parameters:
+
+```typescript
+{
+  urlPattern?: string,  // Optional regex to match tab URL (e.g., "localhost:3000")
+  port?: number         // Remote debugging port (default: 9222)
+}
+```
+
+#### `list_available_tabs`
+
+List all available tabs in the Chrome instance running with remote debugging.
+
+Parameters:
+
+```typescript
+{
+  port?: number  // Remote debugging port (default: 9222)
+}
+```
+
+Returns:
+
+```typescript
+Array<{
+  id: string;
+  url: string;
+  title: string;
+  type: string;
+}>;
+```
+
+#### `disconnect`
+
+Disconnect from the current browser/tab and clean up resources.
+
+#### `get_connection_status`
+
+Get current connection status including:
+
+- Connection mode (puppeteer/attach)
+- Connection state (connected/disconnected)
+- Current URL
+
+Returns:
+
+```typescript
+{
+  mode: 'puppeteer' | 'attach',
+  connected: boolean,
+  currentUrl: string | null
+}
+```
+
 ### Navigation & Content
 
 #### `navigate`
 
-Navigate to a URL in the browser.
+Navigate to a URL in the browser. Works in both connection modes.
 
 ```typescript
 {
@@ -265,10 +344,25 @@ Manage localStorage.
 
 ## Usage Examples
 
-### Performance Testing
+### Attach to Existing Tab (Development Monitoring)
 
 ```
-1. Navigate to https://myapp.com
+1. Start Chrome with remote debugging:
+   /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
+
+2. Open your local app in Chrome (e.g., http://localhost:3000)
+
+3. List available tabs
+4. Connect to existing tab with urlPattern "localhost:3000"
+5. Get console logs to see errors
+6. Get network requests to check API calls
+7. Run accessibility audit
+```
+
+### Launch New Browser (Automated Testing)
+
+```
+1. Navigate to https://myapp.com  (automatically launches browser)
 2. Get performance metrics
 3. Take a screenshot
 ```
@@ -305,10 +399,24 @@ Manage localStorage.
 
 ## Browser Behavior
 
+### Puppeteer Mode (Default)
+
 - Browser launches in **non-headless mode** for visibility
 - Viewport set to 1920x1080 by default
+- Automatically triggered when calling `navigate` without prior connection
+
+### Attach Mode
+
+- Connects to existing Chrome instance via CDP (Chrome DevTools Protocol)
+- Does not control browser lifecycle (browser stays open after disconnect)
+- Requires Chrome started with `--remote-debugging-port=9222`
+- Can attach to specific tab by URL pattern
+
+### Common to Both Modes
+
 - Console logs and network requests automatically captured
 - Each navigation clears previous logs and requests
+- Full access to all browser automation capabilities
 
 ## Development
 

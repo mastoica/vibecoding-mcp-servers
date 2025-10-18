@@ -13,6 +13,56 @@ const browserManager = new BrowserManager();
 
 const tools: Tool[] = [
   {
+    name: 'connect_to_existing_tab',
+    description:
+      'Connect to an existing Chrome/Chromium tab via remote debugging. Chrome must be started with --remote-debugging-port=9222',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        urlPattern: {
+          type: 'string',
+          description:
+            'Optional regex pattern to match against tab URLs (e.g., "localhost:3000"). If not provided, connects to the first available tab.',
+        },
+        port: {
+          type: 'number',
+          description: 'Remote debugging port (default: 9222)',
+        },
+      },
+    },
+  },
+  {
+    name: 'list_available_tabs',
+    description:
+      'List all available tabs in the Chrome/Chromium instance running with remote debugging enabled.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        port: {
+          type: 'number',
+          description: 'Remote debugging port (default: 9222)',
+        },
+      },
+    },
+  },
+  {
+    name: 'disconnect',
+    description: 'Disconnect from the current browser/tab and clean up resources.',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
+  {
+    name: 'get_connection_status',
+    description:
+      'Get the current connection status including mode (puppeteer/attach), connection state, and current URL.',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
+  {
     name: 'navigate',
     description:
       'Navigate to a URL in the browser. This will clear previous console logs and network requests.',
@@ -243,7 +293,7 @@ const tools: Tool[] = [
 const server = new Server(
   {
     name: 'browser-inspector',
-    version: '0.1.3',
+    version: '0.2.0',
   },
   {
     capabilities: {
@@ -261,6 +311,66 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     switch (name) {
+      case 'connect_to_existing_tab': {
+        const { urlPattern, port } = args as unknown as { urlPattern?: string; port?: number };
+        const tab = await browserManager.connectToExistingTab(urlPattern, port);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Connected to tab:\nURL: ${tab.url}\nTitle: ${tab.title}\nID: ${tab.id}`,
+            },
+          ],
+        };
+      }
+
+      case 'list_available_tabs': {
+        // Future: support custom port parameter
+        const tabs = await browserManager.listAvailableTabs();
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(tabs, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'disconnect': {
+        await browserManager.disconnect();
+        return {
+          content: [
+            {
+              type: 'text',
+              text: 'Disconnected from browser',
+            },
+          ],
+        };
+      }
+
+      case 'get_connection_status': {
+        const mode = browserManager.getConnectionMode();
+        const isConnected = browserManager.isConnected();
+        const url = browserManager.getCurrentUrl();
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                {
+                  mode,
+                  connected: isConnected,
+                  currentUrl: url,
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      }
+
       case 'navigate': {
         const { url } = args as unknown as { url: string };
         await browserManager.navigate(url);

@@ -1,48 +1,149 @@
-import puppeteer, { Browser, Page } from 'puppeteer';
+import { chromium, Browser, Page, BrowserContext } from 'playwright';
 import type {
   ConsoleLog,
   NetworkRequest,
   PerformanceMetrics,
   AccessibilityReport,
   AccessibilityIssue,
+  ConnectionMode,
+  BrowserTab,
 } from './types.js';
 
 export class BrowserManager {
   private browser: Browser | null = null;
+  private context: BrowserContext | null = null;
   private page: Page | null = null;
   private consoleLogs: ConsoleLog[] = [];
   private networkRequests: NetworkRequest[] = [];
   private isMonitoring = false;
+  private connectionMode: ConnectionMode = 'puppeteer' as ConnectionMode;
+  private debugPort = 9222;
+  private cdpUrl: string | null = null;
 
-  async ensureBrowser(): Promise<Browser> {
+  async ensureBrowser(mode: ConnectionMode = 'puppeteer' as ConnectionMode): Promise<Browser> {
     if (!this.browser) {
-      this.browser = await puppeteer.launch({
-        headless: false,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-web-security',
-          '--disable-features=IsolateOrigins,site-per-process',
-        ],
-      });
+      this.connectionMode = mode;
+
+      if (mode === ('attach' as ConnectionMode)) {
+        // Connect to existing Chrome instance via CDP
+        this.cdpUrl = `http://localhost:${this.debugPort}`;
+        this.browser = await chromium.connectOverCDP(this.cdpUrl);
+      } else {
+        // Launch new browser
+        this.browser = await chromium.launch({
+          headless: false,
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        });
+      }
     }
     return this.browser;
   }
 
   async ensurePage(): Promise<Page> {
     if (!this.page) {
-      const browser = await this.ensureBrowser();
-      const pages = await browser.pages();
-      // Use the first page that comes with the browser instead of creating a new one
-      this.page = pages.length > 0 ? pages[0] : await browser.newPage();
+      const browser = await this.ensureBrowser(this.connectionMode);
 
-      await this.page.setViewport({ width: 1920, height: 1080 });
+      if (this.connectionMode === ('attach' as ConnectionMode)) {
+        // Get existing contexts (tabs)
+        const contexts = browser.contexts();
+        if (contexts.length > 0) {
+          this.context = contexts[0];
+          const pages = this.context.pages();
+          if (pages.length > 0) {
+            this.page = pages[0];
+          }
+        }
+
+        if (!this.page) {
+          throw new Error('No active tab found. Please open a tab in Chrome.');
+        }
+      } else {
+        // Create new context and page for puppeteer mode
+        this.context = await browser.newContext({
+          viewport: { width: 1920, height: 1080 },
+        });
+        this.page = await this.context.newPage();
+      }
 
       if (!this.isMonitoring) {
         this.setupMonitoring();
       }
     }
     return this.page;
+  }
+
+  async listAvailableTabs(): Promise<BrowserTab[]> {
+    const response = await fetch(`http://localhost:${this.debugPort}/json`);
+    const tabs = (await response.json()) as Array<{
+      id: string;
+      url: string;
+      title: string;
+      type: string;
+      webSocketDebuggerUrl?: string;
+    }>;
+
+    return tabs
+      .filter((tab) => tab.type === 'page')
+      .map((tab) => ({
+        id: tab.id,
+        url: tab.url,
+        title: tab.title,
+        type: tab.type,
+      }));
+  }
+
+  async connectToExistingTab(urlPattern?: string, port = 9222): Promise<BrowserTab> {
+    this.debugPort = port;
+
+    // Close existing connection if any
+    if (this.browser) {
+      await this.disconnect();
+    }
+
+    const tabs = await this.listAvailableTabs();
+
+    if (tabs.length === 0) {
+      throw new Error(
+        'No tabs found. Make sure Chrome is running with --remote-debugging-port=9222'
+      );
+    }
+
+    let targetTab: BrowserTab;
+
+    if (urlPattern) {
+      const regex = new RegExp(urlPattern);
+      const matchingTab = tabs.find((tab) => regex.test(tab.url));
+      if (!matchingTab) {
+        throw new Error(`No tab found matching pattern: ${urlPattern}`);
+      }
+      targetTab = matchingTab;
+    } else {
+      // Use the first tab
+      targetTab = tabs[0];
+    }
+
+    // Connect to the browser
+    this.connectionMode = 'attach' as ConnectionMode;
+    await this.ensureBrowser('attach' as ConnectionMode);
+    await this.ensurePage();
+
+    return targetTab;
+  }
+
+  async disconnect(): Promise<void> {
+    this.page = null;
+    this.context = null;
+    if (this.browser) {
+      if (this.connectionMode === ('attach' as ConnectionMode)) {
+        await this.browser.close();
+      } else {
+        await this.browser.close();
+      }
+      this.browser = null;
+    }
+    this.isMonitoring = false;
+    this.consoleLogs = [];
+    this.networkRequests = [];
   }
 
   private setupMonitoring(): void {
@@ -86,7 +187,7 @@ export class BrowserManager {
       this.networkRequests.push(networkReq);
     });
 
-    this.page.on('response', (response) => {
+    this.page.on('response', async (response) => {
       const request = this.networkRequests.find((req) => req.url === response.url() && !req.status);
       if (request) {
         request.status = response.status();
@@ -100,16 +201,14 @@ export class BrowserManager {
           requestStartTimes.delete(startTime[0]);
         }
 
-        response.buffer().then(
-          (buffer) => {
-            if (request) {
-              request.size = buffer.length;
-            }
-          },
-          () => {
-            // Ignore buffer errors
+        try {
+          const buffer = await response.body();
+          if (request && buffer) {
+            request.size = buffer.length;
           }
-        );
+        } catch {
+          // Ignore buffer errors
+        }
       }
     });
 
@@ -132,7 +231,7 @@ export class BrowserManager {
     this.consoleLogs = [];
     this.networkRequests = [];
 
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+    await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
   }
 
   getConsoleLogs(limit?: number): ConsoleLog[] {
@@ -151,10 +250,10 @@ export class BrowserManager {
   async screenshot(fullPage = false): Promise<string> {
     const page = await this.ensurePage();
     const screenshot = await page.screenshot({
-      encoding: 'base64',
       fullPage,
+      type: 'png',
     });
-    return screenshot as string;
+    return screenshot.toString('base64');
   }
 
   async getPageContent(): Promise<string> {
@@ -179,7 +278,7 @@ export class BrowserManager {
 
   async type(selector: string, text: string): Promise<void> {
     const page = await this.ensurePage();
-    await page.type(selector, text);
+    await page.fill(selector, text);
   }
 
   async waitForSelector(selector: string, timeout = 5000): Promise<void> {
@@ -189,6 +288,14 @@ export class BrowserManager {
 
   getCurrentUrl(): string | null {
     return this.page?.url() || null;
+  }
+
+  getConnectionMode(): ConnectionMode {
+    return this.connectionMode;
+  }
+
+  isConnected(): boolean {
+    return this.page !== null;
   }
 
   async getPerformanceMetrics(): Promise<PerformanceMetrics> {
@@ -220,7 +327,16 @@ export class BrowserManager {
           totalSize,
         };
       })()
-    `)) as any;
+    `)) as {
+      domContentLoaded: number;
+      load: number;
+      firstPaint?: number;
+      firstContentfulPaint?: number;
+      scriptCount: number;
+      stylesheetCount: number;
+      imageCount: number;
+      totalSize: number;
+    };
 
     return {
       timestamp: Date.now(),
@@ -243,7 +359,7 @@ export class BrowserManager {
     const page = await this.ensurePage();
     const url = this.getCurrentUrl() || 'unknown';
 
-    const issues: AccessibilityIssue[] = (await page.evaluate(`
+    const issues = (await page.evaluate(`
       (() => {
         const foundIssues = [];
 
@@ -338,7 +454,7 @@ export class BrowserManager {
 
         return foundIssues;
       })()
-    `)) as any;
+    `)) as AccessibilityIssue[];
 
     const summary = {
       errors: issues.filter((i) => i.type === 'error').length,
@@ -366,28 +482,32 @@ export class BrowserManager {
     }
   ): Promise<void> {
     const page = await this.ensurePage();
-    await page.setCookie({
-      name,
-      value,
-      domain: options?.domain,
-      path: options?.path || '/',
-      expires: options?.expires,
-      httpOnly: options?.httpOnly,
-      secure: options?.secure,
-    });
+    const context = this.context || page.context();
+    await context.addCookies([
+      {
+        name,
+        value,
+        domain: options?.domain || new URL(page.url()).hostname,
+        path: options?.path || '/',
+        expires: options?.expires,
+        httpOnly: options?.httpOnly,
+        secure: options?.secure,
+      },
+    ]);
   }
 
   async getCookies(): Promise<
     Array<{ name: string; value: string; domain: string; path: string }>
   > {
     const page = await this.ensurePage();
-    return await page.cookies();
+    const context = this.context || page.context();
+    return await context.cookies();
   }
 
   async clearCookies(): Promise<void> {
     const page = await this.ensurePage();
-    const cookies = await page.cookies();
-    await page.deleteCookie(...cookies);
+    const context = this.context || page.context();
+    await context.clearCookies();
   }
 
   async setLocalStorage(key: string, value: string): Promise<void> {
@@ -403,7 +523,7 @@ export class BrowserManager {
           const value = localStorage.getItem('${key}');
           return value ? { '${key}': value } : {};
         })()
-      `)) as any;
+      `)) as Record<string, string>;
     }
     return (await page.evaluate(`
       (() => {
@@ -416,7 +536,7 @@ export class BrowserManager {
         }
         return storage;
       })()
-    `)) as any;
+    `)) as Record<string, string>;
   }
 
   async clearLocalStorage(): Promise<void> {
@@ -425,14 +545,6 @@ export class BrowserManager {
   }
 
   async close(): Promise<void> {
-    if (this.page) {
-      await this.page.close();
-      this.page = null;
-    }
-    if (this.browser) {
-      await this.browser.close();
-      this.browser = null;
-    }
-    this.isMonitoring = false;
+    await this.disconnect();
   }
 }

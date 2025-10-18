@@ -1,6 +1,6 @@
 {
   "name": "@ams-dev/browser-inspector",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "MCP server for browser automation, inspection, monitoring, and performance analysis",
   "type": "module",
   "main": "./dist/index.js",
@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
-    "puppeteer": "^23.0.0"
+    "playwright": "^1.49.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
