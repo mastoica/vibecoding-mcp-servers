@@ -32,7 +32,9 @@ export class BrowserManager {
   async ensurePage(): Promise<Page> {
     if (!this.page) {
       const browser = await this.ensureBrowser();
-      this.page = await browser.newPage();
+      const pages = await browser.pages();
+      // Use the first page that comes with the browser instead of creating a new one
+      this.page = pages.length > 0 ? pages[0] : await browser.newPage();
 
       await this.page.setViewport({ width: 1920, height: 1080 });
 
