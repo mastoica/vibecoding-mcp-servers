@@ -1,4 +1,4 @@
-# @vibecoding/dev-watcher
+# @ams-dev/dev-watcher
 
 > MCP server for real-time error detection and pattern matching across development sources
 
@@ -19,10 +19,10 @@ A Model Context Protocol (MCP) server that provides intelligent error detection 
 
 ```bash
 # Global installation
-npm install -g @vibecoding/dev-watcher
+npm install -g @ams-dev/dev-watcher
 
 # Or use with npx
-npx @vibecoding/dev-watcher
+npx @ams-dev/dev-watcher
 ```
 
 ## Usage
@@ -34,7 +34,7 @@ Add to your Claude Code MCP configuration (`~/.config/claude/mcp.json`):
   "mcpServers": {
     "dev-watcher": {
       "command": "npx",
-      "args": ["-y", "@vibecoding/dev-watcher"]
+      "args": ["-y", "@ams-dev/dev-watcher"]
     }
   }
 }
@@ -261,5 +261,5 @@ MIT © [mastoica](https://github.com/mastoica)
 
 ## Related
 
-- [@vibecoding/process-manager](../process-manager) - Development process management
-- [@vibecoding/docker-manager](../docker-manager) - Docker container management
+- [@ams-dev/process-manager](../process-manager) - Development process management
+- [@ams-dev/docker-manager](../docker-manager) - Docker container management
