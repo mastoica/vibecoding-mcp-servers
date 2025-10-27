@@ -42,8 +42,8 @@ importers:
   packages/browser-inspector:
     dependencies:
       '@modelcontextprotocol/sdk':
-        specifier: ^1.0.4
-        version: 1.20.1
+        specifier: ^1.20.2
+        version: 1.20.2
       playwright:
         specifier: ^1.49.0
         version: 1.56.1
@@ -61,8 +61,8 @@ importers:
   packages/dev-watcher:
     dependencies:
       '@modelcontextprotocol/sdk':
-        specifier: ^1.0.4
-        version: 1.20.1
+        specifier: ^1.20.2
+        version: 1.20.2
       eventemitter3:
         specifier: ^5.0.1
         version: 5.0.1
@@ -80,8 +80,8 @@ importers:
   packages/docker-manager:
     dependencies:
       '@modelcontextprotocol/sdk':
-        specifier: ^1.0.4
-        version: 1.20.1
+        specifier: ^1.20.2
+        version: 1.20.2
       dockerode:
         specifier: ^4.0.2
         version: 4.0.9
@@ -102,8 +102,8 @@ importers:
   packages/process-manager:
     dependencies:
       '@modelcontextprotocol/sdk':
-        specifier: ^1.0.4
-        version: 1.20.1
+        specifier: ^1.20.2
+        version: 1.20.2
       eventemitter3:
         specifier: ^5.0.1
         version: 5.0.1
@@ -319,8 +319,8 @@ packages:
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
 
-  '@modelcontextprotocol/sdk@1.20.1':
-    resolution: {integrity: sha512-j/P+yuxXfgxb+mW7OEoRCM3G47zCTDqUPivJo/VzpjbG8I9csTXtOprCf5FfOfHK4whOJny0aHuBEON+kS7CCA==}
+  '@modelcontextprotocol/sdk@1.20.2':
+    resolution: {integrity: sha512-6rqTdFt67AAAzln3NOKsXRmv5ZzPkgbfaebKBqUbts7vK1GZudqnrun5a8d3M/h955cam9RHZ6Jb4Y1XhnmFPg==}
     engines: {node: '>=18'}
 
   '@nodelib/fs.scandir@2.1.5':
@@ -2000,7 +2000,7 @@ snapshots:
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
-  '@modelcontextprotocol/sdk@1.20.1':
+  '@modelcontextprotocol/sdk@1.20.2':
     dependencies:
       ajv: 6.12.6
       content-type: 1.0.5
