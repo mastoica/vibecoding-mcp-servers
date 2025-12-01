@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
-    "execa": "^9.5.2",
+    "execa": "^9.6.1",
     "eventemitter3": "^5.0.1"
   },
   "devDependencies": {
