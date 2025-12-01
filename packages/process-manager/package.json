@@ -33,7 +33,7 @@
     "directory": "packages/process-manager"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@modelcontextprotocol/sdk": "^1.23.0",
     "execa": "^9.5.2",
     "eventemitter3": "^5.0.1"
   },
